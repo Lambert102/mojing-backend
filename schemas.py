@@ -150,3 +150,95 @@ class OutlineResultResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# ─── Character Card ────────────────────────────────────
+
+class CharacterCardCreate(BaseModel):
+    """创建人物设定卡请求体。"""
+    name: str = Field(min_length=1, max_length=128)
+    surface_persona: str = ""
+    actual_persona: str = ""
+    appearance: str = ""
+    personality: str = ""
+    growth_arc: str = ""
+    relationships: str = ""
+    functional_role: str = ""
+
+
+class CharacterCardUpdate(BaseModel):
+    """更新人物设定卡请求体。"""
+    name: Optional[str] = Field(None, min_length=1, max_length=128)
+    surface_persona: Optional[str] = None
+    actual_persona: Optional[str] = None
+    appearance: Optional[str] = None
+    personality: Optional[str] = None
+    growth_arc: Optional[str] = None
+    relationships: Optional[str] = None
+    functional_role: Optional[str] = None
+
+
+class CharacterCardResponse(BaseModel):
+    """人物设定卡响应体。"""
+    id: int
+    project_id: int
+    name: str
+    surface_persona: str
+    actual_persona: str
+    appearance: str
+    personality: str
+    growth_arc: str
+    relationships: str
+    functional_role: str
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+# ─── Chat Session ──────────────────────────────────────
+
+class ChatSessionCreate(BaseModel):
+    """创建对话会话请求体。"""
+    title: str = "新对话"
+
+
+class ChatSessionUpdate(BaseModel):
+    """更新对话会话请求体。"""
+    title: Optional[str] = None
+
+
+class ChatSessionResponse(BaseModel):
+    """对话会话响应体。"""
+    id: int
+    character_card_id: int
+    project_id: int
+    title: str
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+# ─── Chat Message ──────────────────────────────────────
+
+class ChatMessageResponse(BaseModel):
+    """对话消息响应体。"""
+    id: int
+    session_id: int
+    role: str
+    content: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ChatRequest(BaseModel):
+    """发送聊天请求体。"""
+    content: str = Field(min_length=1)
+
+
+class ChatResponse(BaseModel):
+    """AI 回复响应体。"""
+    role: str = "assistant"
+    content: str

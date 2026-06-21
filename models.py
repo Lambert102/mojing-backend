@@ -1,4 +1,4 @@
-"""ORM 模型定义 —— 6 张表：users → projects → cards / organize_results / outline_results / outline_templates。"""
+"""ORM 模型定义 —— 9 张表：users → projects → cards / organize_results / outline_results / outline_templates / character_cards → chat_sessions → chat_messages。"""
 
 import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, func
@@ -55,6 +55,7 @@ class Project(Base):
     outline_results = relationship(
         "OutlineResult", back_populates="project", cascade="all, delete-orphan"
     )
+    character_cards = relationship("CharacterCard", back_populates="project", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<Project id={self.id} name={self.name!r}>"
@@ -91,6 +92,107 @@ class Card(Base):
 
     def __repr__(self) -> str:
         return f"<Card id={self.id} title={self.title!r} type={self.type!r}>"
+
+
+class CharacterCard(Base):
+    """人物设定卡 —— 角色的完整信息档案。"""
+
+    __tablename__ = "character_cards"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(
+        Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    name = Column(String(128), nullable=False)
+    surface_persona = Column(Text, default="")
+    actual_persona = Column(Text, default="")
+    appearance = Column(Text, default="")
+    personality = Column(Text, default="")
+    growth_arc = Column(Text, default="")
+    relationships = Column(Text, default="")
+    functional_role = Column(String(64), default="")
+    created_at = Column(
+        DateTime, default=datetime.datetime.utcnow, server_default=func.now()
+    )
+    updated_at = Column(
+        DateTime,
+        default=datetime.datetime.utcnow,
+        server_default=func.now(),
+        onupdate=datetime.datetime.utcnow,
+    )
+
+    # 关系
+    project = relationship("Project", back_populates="character_cards")
+    chat_sessions = relationship(
+        "ChatSession", back_populates="character_card", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<CharacterCard id={self.id} name={self.name!r}>"
+
+
+class ChatSession(Base):
+    """对话会话表 —— 与某个角色的一次对话记录容器。"""
+
+    __tablename__ = "chat_sessions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    character_card_id = Column(
+        Integer,
+        ForeignKey("character_cards.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    project_id = Column(
+        Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    title = Column(String(255), default="新对话")
+    created_at = Column(
+        DateTime, default=datetime.datetime.utcnow, server_default=func.now()
+    )
+    updated_at = Column(
+        DateTime,
+        default=datetime.datetime.utcnow,
+        server_default=func.now(),
+        onupdate=datetime.datetime.utcnow,
+    )
+
+    # 关系
+    character_card = relationship("CharacterCard", back_populates="chat_sessions")
+    messages = relationship(
+        "ChatMessage",
+        back_populates="session",
+        cascade="all, delete-orphan",
+        order_by="ChatMessage.created_at",
+    )
+
+    def __repr__(self) -> str:
+        return f"<ChatSession id={self.id} title={self.title!r}>"
+
+
+class ChatMessage(Base):
+    """对话消息表 —— 单条聊天记录。"""
+
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(
+        Integer,
+        ForeignKey("chat_sessions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    role = Column(String(16), nullable=False)  # "user" or "assistant"
+    content = Column(Text, nullable=False)
+    created_at = Column(
+        DateTime, default=datetime.datetime.utcnow, server_default=func.now()
+    )
+
+    # 关系
+    session = relationship("ChatSession", back_populates="messages")
+
+    def __repr__(self) -> str:
+        return f"<ChatMessage id={self.id} role={self.role!r}>"
 
 
 class OrganizeResult(Base):

@@ -48,12 +48,16 @@ from routers.projects import router as projects_router
 from routers.cards import router as cards_router
 from routers.organize import router as organize_router
 from routers.outlines import router as outlines_router
+from routers.characters import router as characters_router
+from routers.chat import router as chat_router
 
 app.include_router(auth_router, prefix="/auth", tags=["认证"])
 app.include_router(projects_router, prefix="/projects", tags=["项目"])
 app.include_router(cards_router, prefix="/projects", tags=["卡片"])
 app.include_router(organize_router, prefix="/organize", tags=["梳理"])
 app.include_router(outlines_router, prefix="/outlines", tags=["大纲"])
+app.include_router(characters_router, prefix="/projects", tags=["人物卡"])
+app.include_router(chat_router, prefix="", tags=["对话"])
 
 
 @app.get("/")

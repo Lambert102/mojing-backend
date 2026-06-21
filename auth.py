@@ -20,7 +20,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # ─── HTTP Bearer ───────────────────────────────────────
 
-security_scheme = HTTPBearer()
+security_scheme = HTTPBearer(auto_error=False)
 
 
 # ─── 密码工具 ───────────────────────────────────────────
@@ -77,14 +77,20 @@ def decode_access_token(token: str) -> Optional[dict]:
 # ─── 依赖：当前用户 ─────────────────────────────────────
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
     """从 Bearer token 中解析当前登录用户。
 
     Raises:
-        HTTPException 401: token 无效或用户不存在。
+        HTTPException 401: 未提供 token 或 token 无效，或用户不存在。
     """
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="未提供认证凭据",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     token = credentials.credentials
     payload = decode_access_token(token)
     if payload is None:
