@@ -7,11 +7,24 @@ from config import settings
 
 # 异步引擎 —— 根据 DATABASE_URL 自动选择 SQLite 或 PostgreSQL
 _db_url = settings.DATABASE_URL
-_engine_kwargs = {"echo": False}
-if "sqlite" in _db_url:
-    _engine_kwargs["connect_args"] = {"check_same_thread": False}
 
-engine = create_async_engine(_db_url, **_engine_kwargs)
+if "sqlite" in _db_url:
+    # SQLite 配置
+    engine = create_async_engine(
+        _db_url,
+        connect_args={"check_same_thread": False},
+        echo=False,
+    )
+else:
+    # PostgreSQL 配置 —— 使用 ssl=true 替代 sslmode=require
+    import ssl
+    ssl_context = ssl.create_default_context()
+    engine = create_async_engine(
+        _db_url,
+        connect_args={"ssl": ssl_context},
+        echo=False,
+        pool_pre_ping=True,  # 自动检测断开的连接
+    )
 
 # 会话工厂
 async_session_factory = async_sessionmaker(
