@@ -54,7 +54,7 @@ async def login(body: UserLogin, db: AsyncSession = Depends(get_db)) -> dict:
 
     校验邮箱与密码，成功则返回 JWT access token（有效期 7 天）。
     """
-    result = await db.execute(select(User).where(User.email == body.email))
+    result = await db.execute(select(User).where(User.email == body.username)
     user = result.scalar_one_or_none()
 
     if user is None or not verify_password(body.password, user.hashed_password):
