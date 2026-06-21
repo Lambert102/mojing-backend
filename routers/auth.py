@@ -52,15 +52,15 @@ async def register(body: UserRegister, db: AsyncSession = Depends(get_db)) -> Us
 async def login(body: UserLogin, db: AsyncSession = Depends(get_db)) -> dict:
     """用户登录。
 
-    校验邮箱与密码，成功则返回 JWT access token（有效期 7 天）。
+    校验用户名与密码，成功则返回 JWT access token（有效期 7 天）。
     """
-    result = await db.execute(select(User).where(User.email == body.email))
+    result = await db.execute(select(User).where(User.username == body.username))
     user = result.scalar_one_or_none()
 
     if user is None or not verify_password(body.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="邮箱或密码错误",
+            detail="用户名或密码错误",
         )
 
     access_token = create_access_token(data={"user_id": user.id})
