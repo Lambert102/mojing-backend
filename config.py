@@ -21,11 +21,14 @@ class Settings:
 
     # Database (从环境变量读取，自动适配 SQLite/PostgreSQL)
     _raw_url: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./novel_app.db")
-    # Neon 给的 URL 是 postgresql://, SQLAlchemy async 需要 postgresql+asyncpg://
+    
+    # 处理 Neon PostgreSQL URL
     if _raw_url.startswith("postgresql://") and not _raw_url.startswith("postgresql+asyncpg"):
         _raw_url = _raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-        # asyncpg 用 ?ssl=require 代替 ?sslmode=require
-        _raw_url = _raw_url.replace("?sslmode=require", "?ssl=require")
+        # 去掉 sslmode 参数，由 database.py 显式处理 SSL
+        if "?sslmode=" in _raw_url:
+            _raw_url = _raw_url.split("?")[0]
+    
     DATABASE_URL: str = _raw_url
 
 
