@@ -19,9 +19,9 @@ class Settings:
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 天
 
-    # Database
+    # Database (默认用 Render Disk 持久化路径 /data/)
     DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", "sqlite+aiosqlite:///./novel_app.db"
+        "DATABASE_URL", "sqlite+aiosqlite:////data/mojing.db"
     )
 
 
