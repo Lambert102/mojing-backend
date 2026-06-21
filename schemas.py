@@ -16,7 +16,7 @@ class UserRegister(BaseModel):
 
 class UserLogin(BaseModel):
     """登录请求体。"""
-    email: EmailStr
+    username: str
     password: str
 
 
