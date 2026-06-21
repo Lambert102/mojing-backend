@@ -19,10 +19,14 @@ class Settings:
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 天
 
-    # Database (默认用 Render Disk 持久化路径 /data/)
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", "sqlite+aiosqlite:////data/mojing.db"
-    )
+    # Database (从环境变量读取，自动适配 SQLite/PostgreSQL)
+    _raw_url: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./novel_app.db")
+    # Neon 给的 URL 是 postgresql://, SQLAlchemy async 需要 postgresql+asyncpg://
+    if _raw_url.startswith("postgresql://") and not _raw_url.startswith("postgresql+asyncpg"):
+        _raw_url = _raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        # asyncpg 用 ?ssl=require 代替 ?sslmode=require
+        _raw_url = _raw_url.replace("?sslmode=require", "?ssl=require")
+    DATABASE_URL: str = _raw_url
 
 
 settings = Settings()
